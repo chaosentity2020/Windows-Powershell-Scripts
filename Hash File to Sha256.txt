@@ -1,0 +1,1 @@
+Get-FileHash /etc/apt/sources.list | Format-List

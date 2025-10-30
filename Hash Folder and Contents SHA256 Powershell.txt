@@ -1,0 +1,27 @@
+# Define the folder to hash
+$folderPath = "C:\Your\Folder\Path"  # Change this to your actual folder path
+$outputFile = "C:\Your\Folder\folder_hash.txt"  # Change to where you want to save the hash
+
+# Initialize a hashtable (dictionary) to store file hashes
+$hashDict = @{}
+
+# Get all files in the folder and subfolders, sort by name for consistency
+$files = Get-ChildItem -Path $folderPath -File -Recurse | Sort-Object FullName
+
+# Generate SHA-256 hashes for each file and store them in the dictionary
+foreach ($file in $files) {
+    $fileHash = Get-FileHash -Path $file.FullName -Algorithm SHA256
+    $hashDict[$file.FullName] = $fileHash.Hash  # Store hash with file path as the key
+}
+
+# Concatenate all hashes into a single string for final folder hash computation
+$hashString = ($hashDict.Values) -join ""
+
+# Generate final SHA-256 hash for the entire folder
+$finalHash = [System.BitConverter]::ToString((New-Object System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($hashString))).Replace("-", "")
+
+# Save the dictionary of file hashes and final folder hash to a text file
+$hashDict.GetEnumerator() | ForEach-Object { "$($_.Value) | $($_.Key)" } | Out-File -FilePath $outputFile
+"Final Folder Hash: $finalHash" | Out-File -FilePath $outputFile -Append
+
+Write-Host "Folder hash saved to $outputFile"

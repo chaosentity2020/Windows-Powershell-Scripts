@@ -1,0 +1,72 @@
+icacls "C:\Windows\System32\winevt\Logs" /grant "NT SERVICE\EventLog:(OI)(CI)(F)"
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------
+
+# Requires Admin
+Write-Host "`n🔧 Starting GPO-Related Registry Repair Script..." -ForegroundColor Cyan
+ 
+# --- FIPS ---
+$key = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy"
+if (Test-Path $key) {
+    Remove-ItemProperty -Path $key -Name "Enabled" -ErrorAction SilentlyContinue
+    Write-Host "✔️ Removed FIPS 'Enabled' registry entry"
+}
+ 
+# --- RPC Restrictions ---
+$key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Rpc"
+if (Test-Path $key) {
+    Remove-Item -Path $key -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "✔️ Removed RPC policy restrictions"
+}
+ 
+# --- COM/DCOM Restrictions ---
+$key = "HKLM:\SOFTWARE\Microsoft\Ole"
+Set-ItemProperty -Path $key -Name "EnableDCOM" -Value "Y" -Type String -Force
+Set-ItemProperty -Path $key -Name "LegacyAuthenticationLevel" -Value 2 -Type DWord -Force
+Write-Host "✔️ Restored DCOM functionality"
+ 
+# --- SMB/Network Client Signing ---
+$key = "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters"
+Remove-ItemProperty -Path $key -Name "RequireSecuritySignature" -ErrorAction SilentlyContinue
+Set-ItemProperty -Path $key -Name "EnableSecuritySignature" -Value 1 -Type DWord -Force
+Write-Host "✔️ Reset SMB signing to default behavior"
+ 
+# --- Identity / AAD / Modern Auth ---
+$key1 = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
+Remove-ItemProperty -Path $key1 -Name "BlockAADWorkplaceJoin" -ErrorAction SilentlyContinue
+ 
+$key2 = "HKCU:\Software\Microsoft\Office\16.0\Common\Identity"
+New-Item -Path $key2 -Force | Out-Null
+Set-ItemProperty -Path $key2 -Name "EnableADAL" -Value 1 -Type DWord
+Write-Host "✔️ Enabled Modern Auth and removed AAD join block"
+ 
+# --- EventLog / Search Services ---
+$services = @(
+    @{ Name = "EventLog";  Path = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog" },
+    @{ Name = "WSearch";   Path = "HKLM:\SYSTEM\CurrentControlSet\Services\WSearch" }
+)
+ 
+foreach ($svc in $services) {
+    Set-ItemProperty -Path $svc.Path -Name "Start" -Value 2 -Type DWord -ErrorAction SilentlyContinue
+    if ($svc.Name -eq "WSearch") {
+        Set-ItemProperty -Path $svc.Path -Name "DelayedAutoStart" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+    }
+    Write-Host "✔️ Reset service: $($svc.Name)"
+}
+ 
+Write-Host "`n✅ Registry repair complete. Reboot your system to apply changes." -ForegroundColor Green
+---------------------------------------------------------------------------------------------------------------------
+
+
+
+
+RD /S /Q "%WinDir%\System32\GroupPolicy"
+RD /S /Q "%WinDir%\System32\GroupPolicyUsers"
+reg delete "HKLM\SOFTWARE\Policies" /f
+reg delete "HKCU\SOFTWARE\Policies" /f
+gpupdate /force
