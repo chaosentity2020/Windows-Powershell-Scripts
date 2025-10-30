@@ -1,0 +1,45 @@
+# 1) Make this session permissive + use TLS 1.2
+Set-ExecutionPolicy -Scope Process Bypass -Force
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# 2) Make sure NuGet + PSGallery are ready
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+# 3) Remove any broken/old installs
+Get-InstalledModule PSWindowsUpdate -AllVersions -ErrorAction SilentlyContinue | Uninstall-Module -AllVersions -Force
+Remove-Item -Recurse -Force `
+  "$env:ProgramFiles\WindowsPowerShell\Modules\PSWindowsUpdate", `
+  "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\PSWindowsUpdate" `
+  -ErrorAction SilentlyContinue
+
+# 4) Fresh install for all users, then import
+Install-Module -Name PSWindowsUpdate -Scope AllUsers -Force
+Import-Module PSWindowsUpdate -Force
+
+# 5) (Sometimes files are marked 'blocked' — unblock just in case)
+Get-Module -ListAvailable PSWindowsUpdate | ForEach-Object {
+  Get-ChildItem $_.ModuleBase -Recurse | Unblock-File -ErrorAction SilentlyContinue
+}
+Import-Module PSWindowsUpdate -Force
+
+#Then run this below command to see if the commands work successfully
+# Confirm module is available and loaded
+Get-Module PSWindowsUpdate -ListAvailable | Select Name,Version,ModuleBase
+Get-Command -Module PSWindowsUpdate | Select Name
+
+# Try the cmdlets (no install yet)
+Get-WindowsUpdate
+Get-WURebootStatus
+
+#Run the update
+Get-WindowsUpdate -MicrosoftUpdate -AcceptAll -Install
+
+
+
+#delete the registry disabling running windows updates via the win10 gui and reboot to check if its still there, run the scan to push the window update and reboot.
+reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /f
+gpupdate /force
+#rebooted
+reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate /s
+usoclient StartScan
