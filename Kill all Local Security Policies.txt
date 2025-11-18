@@ -1,0 +1,5 @@
+# Backup current security settings
+secedit /export /cfg "$env:USERPROFILE\Desktop\secpol-backup.inf"
+
+# Reset security settings to default
+secedit /configure /cfg "$env:windir\inf\defltbase.inf" /db deflt.sdb /verbose
