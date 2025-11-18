@@ -1,0 +1,9 @@
+@echo off
+# Wait a moment to ensure network is ready
+timeout /t 5 /nobreak >nul
+
+# Remove stuck/broken mappings (prevents duplicates)
+net use Z: /delete /yes
+
+# Map the drive using persistent mode
+net use Z: "\\yourfilepath" /user:Username Password /persistent:yes
