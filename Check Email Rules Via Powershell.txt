@@ -1,0 +1,7 @@
+import-module exchangeonlinemanagement
+connect-exchangeonline
+
+$user = "Email@email.com"
+get-inboxrule -mailbox $user | Format-list
+
+Get-InboxRule -Mailbox user@example.com -IncludeHidden
