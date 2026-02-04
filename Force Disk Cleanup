@@ -1,0 +1,26 @@
+# Stop Windows Update Services
+Stop-Service -Name wuauserv -Force
+Stop-Service -Name bits -Force
+Stop-Service -Name cryptsvc -Force
+Stop-Service -Name trustedinstaller -Force
+
+# Clear SoftwareDistribution folder
+Remove-Item -Path "C:\Windows\SoftwareDistribution\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# Clear Windows Update backup files
+Remove-Item -Path "C:\Windows\WinSxS\Backup\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# Run DISM cleanup to remove superseded updates
+DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase
+
+# Clear Temp directories
+Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# Restart Services
+Start-Service -Name wuauserv
+Start-Service -Name bits
+Start-Service -Name cryptsvc
+Start-Service -Name trustedinstaller
+
+Write-Output "Windows cleanup completed."
