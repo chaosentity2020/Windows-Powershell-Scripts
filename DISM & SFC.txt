@@ -1,3 +1,4 @@
 DISM /Online /Cleanup-Image /ScanHealth
+#Detailed logs are generated at C:\Windows\Logs\CBS\CBS.log
 DISM /Online /Cleanup-Image /RestoreHealth
 sfc /scannow
