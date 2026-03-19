@@ -1,0 +1,8 @@
+$atera = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -like "*Atera*" }
+
+if ($atera) {
+    Write-Output "Atera is installed"
+} else {
+    Write-Output "Atera is not installed"
+}
