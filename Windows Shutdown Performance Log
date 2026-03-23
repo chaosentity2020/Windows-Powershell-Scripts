@@ -1,0 +1,3 @@
+Get-WinEvent -LogName "Microsoft-Windows-Diagnostics-Performance/Operational" -MaxEvents 100 |
+Where-Object { $_.Id -in 200,201,202,203 } |
+Select-Object TimeCreated, Id, Message | Format-List
