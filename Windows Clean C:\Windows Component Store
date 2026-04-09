@@ -1,0 +1,9 @@
+#Disk Cleanup:
+cleanmgr /sageset:1
+cleanmgr /sagerun:1
+
+#Component Store Cleaning:
+DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase
+
+Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
