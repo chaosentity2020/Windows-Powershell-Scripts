@@ -1,0 +1,32 @@
+# Safe Daily Disk Cleanup Script
+# Run as Administrator
+
+Write-Host "=== Daily Disk Cleanup ===" -ForegroundColor Cyan
+Write-Host "Safe cleanup - no system files or logs removed`n" -ForegroundColor Yellow
+
+# 1. Clear Temp files (safe)
+Write-Host "[1/5] Cleaning Temp files..." -ForegroundColor Green
+Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+Remove-Item -Path "C:\Users\*\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+
+# 2. Clear browser cache (Edge, Chrome)
+Write-Host "[2/5] Cleaning browser cache..." -ForegroundColor Green
+Remove-Item -Path "C:\Users\*\AppData\Local\Microsoft\Edge\User Data\Default\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+Remove-Item -Path "C:\Users\*\AppData\Local\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+
+# 3. Clear Recycle Bin
+Write-Host "[3/5] Emptying Recycle Bin..." -ForegroundColor Green
+Remove-Item -Path "C:\`$Recycle.Bin\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+
+# 4. Clear temporary Internet files
+Write-Host "[4/5] Cleaning temporary Internet files..." -ForegroundColor Green
+Remove-Item -Path "C:\Users\*\AppData\Local\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+
+# 5. Show disk space freed
+Write-Host "[5/5] Checking disk space..." -ForegroundColor Green
+$volume = Get-Volume -DriveLetter C
+$freeGB = [math]::Round($volume.SizeRemaining/1GB, 2)
+$totalGB = [math]::Round($volume.Size/1GB, 2)
+Write-Host "Drive C: $freeGB GB free / $totalGB GB total`n" -ForegroundColor Cyan
+
+Write-Host "=== Cleanup Complete ===" -ForegroundColor Green
