@@ -1,0 +1,151 @@
+$adapter = "Ethernet"
+
+Write-Host "Applying low-latency network optimizations to $adapter..."
+Write-Host "---------------------------------------------"
+
+# Disable latency-harmful features
+$settings = @{
+    "*InterruptModeration" = "Disabled"
+    "*LsoV2IPv4"           = "Disabled"
+    "*LsoV2IPv6"           = "Disabled"
+    "*FlowControl"         = "Disabled"
+    "*PMARPOffload"        = "Disabled"
+    "*PMNSOffload"         = "Disabled"
+}
+
+foreach ($key in $settings.Keys) {
+    try {
+        Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword $key -RegistryValue $settings[$key] -NoRestart -ErrorAction Stop
+        Write-Host "Set $key → $($settings[$key])"
+    } catch {
+        Write-Host "Skipped $key (not supported on this driver)"
+    }
+}
+
+# Set Speed & Duplex to 1Gbps Full Duplex
+try {
+    Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "*SpeedDuplex" -RegistryValue "1.0 Gbps Full Duplex" -NoRestart
+    Write-Host "Set SpeedDuplex → 1.0 Gbps Full Duplex"
+} catch {
+    Write-Host "Could not set SpeedDuplex"
+}
+
+# Increase buffers
+try {
+    Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "*TransmitBuffers" -RegistryValue 512 -NoRestart
+    Write-Host "Set Transmit Buffers → 512"
+} catch {
+    Write-Host "Could not set Transmit Buffers"
+}
+
+try {
+    Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "*ReceiveBuffers" -RegistryValue 1024 -NoRestart
+    Write-Host "Set Receive Buffers → 1024"
+} catch {
+    Write-Host "Could not set Receive Buffers"
+}
+
+# Disable Wake-on-LAN features
+$wolSettings = @(
+    "*WakeOnMagicPacket",
+    "*WakeOnPattern",
+    "S5WakeOnLan"
+)
+
+foreach ($wol in $wolSettings) {
+    try {
+        Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword $wol -RegistryValue "Disabled" -NoRestart
+        Write-Host "Disabled $wol"
+    } catch {
+        Write-Host "Skipped $wol (not supported)"
+    }
+}
+
+# Apply changes
+Write-Host ""
+Write-Host "Restarting adapter to apply changes..."
+
+Disable-NetAdapter -Name $adapter -Confirm:$false
+Start-Sleep -Seconds 3
+Enable-NetAdapter -Name $adapter -Confirm:$false
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+
+#$adapter = "Ethernet"
+
+Write-Host "Restoring default network settings for $adapter..."
+Write-Host "---------------------------------------------"
+
+# Restore common default values
+$settings = @{
+    "*InterruptModeration" = "Enabled"
+    "*LsoV2IPv4"           = "Enabled"
+    "*LsoV2IPv6"           = "Enabled"
+    "*FlowControl"         = "Rx & Tx Enabled"
+    "*PMARPOffload"        = "Enabled"
+    "*PMNSOffload"         = "Enabled"
+}
+
+foreach ($key in $settings.Keys) {
+    try {
+        Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword $key -RegistryValue $settings[$key] -NoRestart -ErrorAction Stop
+        Write-Host "Restored $key → $($settings[$key])"
+    } catch {
+        Write-Host "Skipped $key (not supported on this driver)"
+    }
+}
+
+# Restore Speed & Duplex to Auto
+try {
+    Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "*SpeedDuplex" -RegistryValue "Auto Negotiation" -NoRestart
+    Write-Host "Restored SpeedDuplex → Auto Negotiation"
+} catch {
+    Write-Host "Could not restore SpeedDuplex"
+}
+
+# Restore buffers to typical defaults
+try {
+    Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "*TransmitBuffers" -RegistryValue 128 -NoRestart
+    Write-Host "Restored Transmit Buffers → 128"
+} catch {
+    Write-Host "Could not restore Transmit Buffers"
+}
+
+try {
+    Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "*ReceiveBuffers" -RegistryValue 512 -NoRestart
+    Write-Host "Restored Receive Buffers → 512"
+} catch {
+    Write-Host "Could not restore Receive Buffers"
+}
+
+# Restore Wake-on-LAN features
+$wolSettings = @{
+    "*WakeOnMagicPacket" = "Enabled"
+    "*WakeOnPattern"     = "Enabled"
+    "S5WakeOnLan"        = "Enabled"
+}
+
+foreach ($wol in $wolSettings.Keys) {
+    try {
+        Set-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword $wol -RegistryValue $wolSettings[$wol] -NoRestart
+        Write-Host "Restored $wol → Enabled"
+    } catch {
+        Write-Host "Skipped $wol (not supported)"
+    }
+}
+
+# Restart adapter to apply changes
+Write-Host ""
+Write-Host "Restarting adapter..."
+
+Disable-NetAdapter -Name $adapter -Confirm:$false
+Start-Sleep -Seconds 3
+Enable-NetAdapter -Name $adapter -Confirm:$false
+
+Write-Host ""
+Write-Host "✅ Defaults restored."
+
+Write-Host ""
+Write-Host "✅ Optimization complete. Your network is now tuned for low latency."
