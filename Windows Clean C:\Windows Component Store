@@ -1,6 +1,11 @@
-#Disk Cleanup:
+# Disk Cleanup:
+
 cleanmgr /sageset:1
 cleanmgr /sagerun:1
+
+# Manual Component analysis for total space:
+dism.exe /online /Cleanup-Image /AnalyzeComponentStore
+
 
 #Component Store Cleaning for clearing corrupt update files:
 DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase
