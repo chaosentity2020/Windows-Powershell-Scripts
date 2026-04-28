@@ -1,5 +1,0 @@
-#This analyzes the windows update files that are sitting in a temporary location and the second script cleans it out. 
-#Helpful for pcs with windows updates getting stuck or corrupt. Run the commands, reboot and push updates.
-
-dism.exe /online /Cleanup-Image /AnalyzeComponentStore
-dism.exe /online /Cleanup-Image /StartComponentCleanup
