@@ -1,2 +1,0 @@
-dism.exe /online /Cleanup-Image /AnalyzeComponentStore
-dism.exe /online /Cleanup-Image /StartComponentCleanup
