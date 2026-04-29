@@ -1,0 +1,27 @@
+# This config is for E3 and Exchange online plan 2. Itll auto expand archives up to 1.5TB if enabled
+
+# Connect to Exchange Online
+Connect-ExchangeOnline
+
+# Enable auto-expanding archive for ONE user
+Enable-Mailbox -Identity "admin@vansonpi.com" -AutoExpandingArchive
+
+# Enable for multiple users
+"user1@company.com", "user2@company.com", "user3@company.com" | 
+  ForEach-Object { Enable-Mailbox -Identity $_ -AutoExpandingArchive }
+
+# Enable auto-expanding archive for EVERYONE (all users)
+Set-OrganizationConfig -AutoExpandingArchive
+
+# Verify it's enabled
+Get-OrganizationConfig | FL AutoExpandingArchiveEnabled
+
+
+# Verify for specific user
+Get-Mailbox -Identity "user@company.com" | FL AutoExpandingArchiveEnabled
+
+# List all users with auto-expanding archive enabled
+Get-Mailbox -ResultSize Unlimited | 
+  Where-Object {$_.AutoExpandingArchiveEnabled -eq $true} |
+  Select-Object DisplayName, ArchiveStatus, AutoExpandingArchiveEnabled |
+  Format-Table -AutoSize
