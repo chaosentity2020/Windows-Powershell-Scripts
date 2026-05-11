@@ -1,0 +1,6 @@
+# Change Interface number to needed interface
+# Identify what interface is what with the command below
+Write-Host "`nAvailable adapters:" -ForegroundColor Yellow
+Get-NetAdapter | Select-Object InterfaceIndex, Name, Status, MacAddress, @{Name="IP Address";Expression={(Get-NetIPAddress -InterfaceIndex $_.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress}}, @{Name="Current Gateway";Expression={(Get-NetRoute -InterfaceIndex $_.InterfaceIndex -DestinationPrefix "0.0.0.0/0" -ErrorAction SilentlyContinue).NextHop}} | Format-Table -AutoSize
+# Then change interface number below and run 
+$interfaceIndex = 13; Set-NetIPInterface -InterfaceIndex $interfaceIndex -AddressFamily IPv6 -DHCP Disabled; Write-Host "DHCPv6 disabled on interface $interfaceIndex" -ForegroundColor Green
