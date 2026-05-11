@@ -1,0 +1,45 @@
+# ===== SETUP =====
+Write-Host "=== Exporting Windows Event Logs ===" -ForegroundColor Green
+
+# MUST CHANGE THE PATH IN ORDER TO OUTPUT CORRECTLY
+$outputPath = "C:\Users\USER\Downloads\EventLogs_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+Write-Host "Output: $outputPath`n" -ForegroundColor Cyan
+
+# ===== INITIALIZE ARRAY =====
+$logs = @()
+
+# ===== GET ALL EVENT LOG NAMES =====
+Write-Host "Scanning event logs..." -ForegroundColor Yellow
+$allLogs = Get-EventLog -List
+
+# ===== LOOP THROUGH EACH LOG =====
+foreach ($log in $allLogs) {
+    $logName = $log.Log
+    Write-Host "  Reading: $logName" -ForegroundColor Cyan
+    
+    # ===== GET EVENTS FROM THIS LOG =====
+    $events = Get-EventLog -LogName $logName -ErrorAction SilentlyContinue
+    
+    # ===== ADD EACH EVENT TO ARRAY =====
+    foreach ($event in $events) {
+        $logEntry = [PSCustomObject]@{
+            LogName = $logName
+            EventID = $event.EventID
+            Source = $event.Source
+            Type = $event.EntryType
+            TimeGenerated = $event.TimeGenerated
+            Message = $event.Message
+            Computer = $event.MachineName
+            User = $event.UserName
+        }
+        $logs += $logEntry
+    }
+}
+
+# ===== EXPORT TO CSV =====
+Write-Host "`nExporting $($logs.Count) events to CSV..." -ForegroundColor Yellow
+$logs | Export-Csv -Path $outputPath -NoTypeInformation -Encoding UTF8
+
+# ===== COMPLETION MESSAGE =====
+Write-Host "✓ Export complete: $outputPath" -ForegroundColor Green
+Write-Host "`n=== Complete ===" -ForegroundColor Green
