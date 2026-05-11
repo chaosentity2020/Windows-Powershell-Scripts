@@ -8,8 +8,7 @@ Write-Host "=== Modify Default Gateway ===" -ForegroundColor Green
 
 # ===== GET ADAPTER INFO =====
 Write-Host "`nAvailable adapters:" -ForegroundColor Yellow
-Get-NetAdapter | Select-Object InterfaceIndex, Name, Status | Format-Table
-
+Get-NetAdapter | Select-Object InterfaceIndex, Name, Status, MacAddress, @{Name="IP Address";Expression={(Get-NetIPAddress -InterfaceIndex $_.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress}}, @{Name="Current Gateway";Expression={(Get-NetRoute -InterfaceIndex $_.InterfaceIndex -DestinationPrefix "0.0.0.0/0" -ErrorAction SilentlyContinue).NextHop}} | Format-Table -AutoSize
 # ===== SET VARIABLES =====
 $interfaceIndex = 2  # Change this to your adapter number
 $newGateway = "192.168.1.1"  # Change this to new gateway IP
