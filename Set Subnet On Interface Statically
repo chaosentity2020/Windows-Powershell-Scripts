@@ -1,0 +1,10 @@
+# BEFORE CHANGE THESE VALUES:
+# $interfaceIndex = 2  # Your adapter number
+
+# Get interface with below script
+Write-Host "`nAvailable adapters:" -ForegroundColor Yellow
+Get-NetAdapter | Select-Object InterfaceIndex, Name, Status, MacAddress, @{Name="IP Address";Expression={(Get-NetIPAddress -InterfaceIndex $_.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress}}, @{Name="Current Gateway";Expression={(Get-NetRoute -InterfaceIndex $_.InterfaceIndex -DestinationPrefix "0.0.0.0/0" -ErrorAction SilentlyContinue).NextHop}} | Format-Table -AutoSize
+
+
+# Run command to change
+$interfaceIndex = 13; $ipAddress = "10.13.170.133"; $subnetMask = "255.255.255.0"; New-NetIPAddress -InterfaceIndex $interfaceIndex -IPAddress $ipAddress -PrefixLength 24 -AddressFamily IPv4 -ErrorAction SilentlyContinue; Write-Host "IP: $ipAddress / Subnet: $subnetMask set on interface $interfaceIndex" -ForegroundColor Green
