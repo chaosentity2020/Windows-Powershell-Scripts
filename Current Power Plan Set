@@ -15,3 +15,6 @@ Write-Host "`nCurrent power settings:" -ForegroundColor Yellow
 powercfg /query SCHEME_CURRENT | Select-String -Pattern "Power Scheme|Subgroup of Power|Power Setting" | Format-Table
 
 Write-Host "`n=== Complete ===" -ForegroundColor Green
+
+# Get Active Power Plans List
+Write-Host "=== Active Power Plan ===" -ForegroundColor Green; $activePlan = Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerPlan -Filter "IsActive=true"; Write-Host "`nActive Plan: $($activePlan.ElementName)" -ForegroundColor Green; Write-Host "`nAll Plans:" -ForegroundColor Yellow; Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerPlan | Select-Object ElementName, @{Name="IsActive";Expression={$_.IsActive}} | Format-Table; Write-Host "`n=== Complete ===" -ForegroundColor Green
