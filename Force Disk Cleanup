@@ -24,3 +24,6 @@ Start-Service -Name cryptsvc
 Start-Service -Name trustedinstaller
 
 Write-Output "Windows cleanup completed."
+
+# Run Sfc /scannow just in case
+sfc /scannow
